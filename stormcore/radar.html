@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+html,body,#map{height:100%;margin:0;background:#081321}
+.leaflet-container{background:#081321}
+.legend{background:#0b1b2b;color:#dceaf5;padding:9px 12px;border:1px solid #31506c;border-radius:6px;font:12px Arial}
+</style>
+</head>
+<body>
+<div id="map"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const map=L.map('map',{zoomControl:true}).setView([38.5,-96],4);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+ maxZoom:18, attribution:'© OpenStreetMap contributors'
+}).addTo(map);
+let radarLayer=null;
+let infoLayer=null;
+let currentMode='radar';
+function setRadar(url){
+ if(radarLayer) map.removeLayer(radarLayer);
+ radarLayer=L.tileLayer(url,{tileSize:256,opacity:0.72, maxZoom:12,
+   attribution:'Radar © RainViewer'}).addTo(map);
+}
+function setLocation(lat,lon,zoom=7){ map.setView([lat,lon],zoom); }
+function setMode(mode,lat,lon,details){
+ currentMode=mode;
+ if(infoLayer){map.removeLayer(infoLayer);infoLayer=null;}
+ if(mode==='radar'){
+   if(radarLayer) radarLayer.setOpacity(0.72);
+   return;
+ }
+ if(radarLayer) radarLayer.setOpacity(0.18);
+ const colors={wind:'#55c7ff',snow:'#d8f3ff',hail:'#ffb84d'};
+ const labels={wind:'LOCAL WIND',snow:'LOCAL SNOW',hail:'HAIL ALERTS'};
+ infoLayer=L.circleMarker([lat,lon],{radius:19,color:colors[mode]||'#55c7ff',weight:3,fillColor:colors[mode]||'#55c7ff',fillOpacity:0.24}).addTo(map);
+ infoLayer.bindPopup('<b>'+labels[mode]+'</b><br>'+details).openPopup();
+}
+function zoomIn(){map.zoomIn();} function zoomOut(){map.zoomOut();}
+window.setRadar=setRadar; window.setLocation=setLocation; window.setMode=setMode; window.zoomIn=zoomIn; window.zoomOut=zoomOut;
+</script>
+</body>
+</html>
